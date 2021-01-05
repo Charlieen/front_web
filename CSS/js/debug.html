@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+    function convertToRoman(num) {
+    let preData=[];
+    let arr=[...(String(num))];
+    const count = arr.length;
+    arr.some((x,index)=>{
+       preData.push(getNum(x,index,count)) 
+    });
+    console.log(preData);
+ return num;
+}
+
+function getNum(num,index,count){
+    return Math.pow(10,count-index-1)*num;
+}
+
+function numToRoman(){
+    const dic={
+        1:"I",
+        5: "V",
+        10:"X",
+        50:"L",
+        100:"C",
+        500:"D",
+       1000: "M"
+    };
+    let commDic={};
+    let range = Object.keys(dic).map(x=>Number(x));
+    console.log(range);
+// [ 1, 5, 10, 50, 100, 500, 1000 ]
+    let preBegin=0;
+    for(let i=0;i<range.length-1;i++){
+        if(range[i]<=10){preBegin=1}
+        if(range[i]<=100 && range[i]>10){preBegin=10};
+         if(range[i]<=1000 && range[i]>100){preBegin=100};
+         getRomanFromBeginAndEnd(i,dic,range[i],range[i+1],preBegin);
+    }
+
+console.log(commDic);
+
+function getRomanFromBeginAndEnd(index,dic,begin,end,preBegin){
+    let base=0;
+    if(begin<10)base=1;
+    if(begin>=10 && begin<100)base=10;
+    if(begin>=100 && begin<1000)base=100;
+    // let result={};
+
+    for(let i=begin;i<=end;i+=base){
+        commDic[i]=getRomanFromNumber(index,preBegin,begin,end,i,base,dic);
+    }
+
+}
+
+function getRomanFromNumber(index,preBegin,begin,end,num,base,dic){
+    let result="";
+    if(index%2==0){
+        if(end-num<=base){
+            if(num==end){
+                result= dic[end];
+            }else{
+                result=dic[begin]+dic[end];
+            }
+        }else{
+         const temp= dic[begin];
+        do{
+            result = result +temp;
+            num=num-base;
+        }while(num>=begin)
+        }
+        
+    }else{
+        if(end-num<=base){
+            if(num==end){
+                result= dic[end];
+            }else{
+                result=dic[preBegin]+dic[end];
+            }
+        }else{
+         result= dic[begin];
+         
+        while(num>begin){
+            result =result+dic[preBegin];
+            num=num-base;
+        }
+        }
+    }
+    return result;
+}
+
+}
+
+
+
+
+numToRoman();
+
+//convertToRoman(1006);
+    </script>
+</body>
+</html>

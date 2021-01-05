@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>&#8523</h1>
+    <script>
+        /*
+        Your regex should match JACK
+
+Passed
+Your regex should not match J
+
+Passed
+Your regex should match Jo
+
+Passed
+Your regex should match Oceans11
+
+Passed
+Your regex should match RegexGuru
+
+Passed
+Your regex should not match 007
+
+Passed
+Your regex should not match 9
+
+Your regex should not match A1
+
+Your regex should not match BadUs3rnam3
+
+Passed
+Your regex should match Z97
+
+Your regex should not match c57bT3
+
+Passed
+Your regex should match AB1
+
+123
+let username = "JackOfAllTrades";
+let userCheck = /[a-zA-Z][a-zA-Z0-9]+[0-9]*$/; // Change this line
+let result = userCheck.test(username);
+// running tests
+Your regex should not match A1
+Your regex should not match BadUs3rnam3
+Your regex should not match c57bT3
+// tests completed
+        */
+
+        /*
+            /S == [^ \r\t\f\n\v];
+            /s ==[\r\t\f\n\v];
+        */
+        
+        let test="c57bT3";
+        const patter=/^[a-zA-Z][a-zA-Z0-9]+[0-9]*$/;
+
+        const patt1= /^[a-z][a-z]+\d*$|^[a-z]\d\d+$/i;
+        const patt2 = /^[a-z]([0-9]{2,}|[a-z]+\d*)$/i;
+        let result= test.match(patt1);
+       // document.write(result);
+/*
+A more practical use of lookaheads is to check two or more patterns in one string.
+ Here is a (naively) simple password checker 
+ that looks for between 3 and 6 characters and at least one number:
+
+let password = "abc123";
+let checkPass = /(?=\w{3,6})(?=\D*\d)/;
+checkPass.test(password); // Returns true
+*/
+
+// let password1 = "abcde12";
+// let checkPass = /(?=\w{3,6})(?=\D*\d)/;
+
+// let pw1=   /^\D(?=\w{5})(?=\w*\d{2})/;
+
+// let pwRegex = /(?=\w{5,})([^\D]?=\d{2,})/; // 
+
+// document.write(password1.match(pwRegex));
+
+// console.log(password1.match(pw1));
+
+//document.write('ddd');
+
+       
+    </script>
+</body>
+</html>
