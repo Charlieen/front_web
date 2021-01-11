@@ -18,10 +18,20 @@ Otherwise, return {status: "OPEN", change: [...]}, with the change due in coins 
  */
 // 1923.78= [1000,900,20,3] and [70,8]
 
-const cid=[["PENNY", 1.01], ["NICKEL", 2.05],
+const cid1=[["PENNY", 1.01], ["NICKEL", 2.05],
 ["DIME", 3.1], ["QUARTER", 4.25], 
 ["ONE", 90], ["FIVE", 55], ["TEN", 20], 
 ["TWENTY", 60], ["ONE HUNDRED", 100]];
+
+const cid=[["PENNY", 1.01], ["NICKEL", 2.05],
+["DIME", 3.1], ["QUARTER", 4.25], 
+["ONE", 1090], ["FIVE", 5], ["TEN", 20], 
+["TWENTY", 0], ["ONE HUNDRED", 0]];
+
+const cid2=[["PENNY", 0.5], ["NICKEL", 0],
+["DIME", 0], ["QUARTER", 0], 
+["ONE", 0], ["FIVE", 0], ["TEN", 0], 
+["TWENTY", 0], ["ONE HUNDRED", 0]];
 
 function checkCashRegister(price,cash,cid){
     let result={};
@@ -33,12 +43,100 @@ function checkCashRegister(price,cash,cid){
     if(totalCid<cash-price){
         result={"status":"INSUFFICIENT_FUNDS",change:[]};
     }else{
-        let solution= preData(price,cash);
+        let bestSolution= findBestSolution(price,cash);
+        result = isInCid(bestSolution,cid);
     }
+    if(result.status!=="CLOSED"){
+        if(result.change.length>0){
+            let  output= unitOutput(result.change);
+            result.change=output;
+        }
+    }else{
+        result.status="CLOSED";
+        result.change= cid;
+    }
+  
+    console.log("--3--final solution-",result);
+    return result;
 
 }
 
-function preData(price,cash){
+function unitOutput(bestSolution){
+    const UnitToValue={
+        "ONE HUNDRED":100,
+        "TWENTY":20,
+        "TEN":10,
+        "FIVE":5,
+        "ONE":1,
+        "QUARTER":0.25,
+        "DIME":0.1,
+        "NICKEL":0.05,
+        "PENNY":0.01
+    };
+    let output=[];
+    bestSolution.some(x=>{
+        if(x.newItems == undefined){
+            output.push(x);
+        }else if(x.newItems.flag){
+            x.newItems.items.some(y=>{
+                output.push(y);
+            })
+        }else if(x.newItem !== undefined){
+            output.push(x.newItem);
+        }
+    });
+    output= output.map(x=>{
+        const temp=[];
+        const str=x.TYPE;
+        temp.push(str);
+        temp.push(x.COUNT*UnitToValue[x.TYPE]);
+        return temp;
+    })
+    console.log("unit: ",output);
+    return merge(output);
+}
+/**
+ * [ [ 'TWENTY', 60 ],
+     [ 'TEN', 10 ],
+     [ 'FIVE', 5 ],
+     [ 'ONE', 1 ],
+     [ 'QUARTER', 0.5 ],
+     [ 'DIME', 0.2 ],
+     [ 'PENNY', 0.04 ],
+     [ 'TEN', 10 ],
+     [ 'FIVE', 10 ] ],
+ */
+
+function merge(output){
+    let temp={};
+    output.some(x=>{
+        if(!Object.keys(temp).includes(x[0])){
+            temp[x[0]]=x[1];
+        }else{
+            temp[x[0]]=temp[x[0]]+x[1];
+        }
+    });
+    let result=[];
+    Object.keys(temp).some(x=>{
+        result.push([x,temp[x]]);
+    })
+
+   // console.log(result);
+    return result;
+}
+merge([ [ 'TWENTY', 60 ],
+[ 'TEN', 10 ],
+[ 'FIVE', 5 ],
+[ 'ONE', 1 ],
+[ 'QUARTER', 0.5 ],
+[ 'DIME', 0.2 ],
+[ 'PENNY', 0.04 ],
+[ 'TEN', 10 ],
+[ 'FIVE', 10 ] ]);
+// checkCashRegister(19.5,20,cid2);
+
+function findBestSolution(price,cash){
+    let output=[];
     let bestSolution=[];
     let pre = String(cash-price);
     let big,small;
@@ -48,7 +146,8 @@ function preData(price,cash){
         big= pre.split(".")[0];
         small= pre.split(".")[1];
         bigPre= diffNum(big);
-        smallPre= [Number(small)];
+        smallPre=Number("0."+small)*100;
+       
     }else{
         big=pre;
         bigPre= diffNum(big);
@@ -56,10 +155,11 @@ function preData(price,cash){
     
      bestSolution= getArrayFromObjects(diffPreBigData(bigPre),diffPreSmallData(smallPre))
 
-    console.log(bestSolution);
+   // console.log("-1 bestSolution:--",bestSolution);
+   
     return bestSolution;
 }
-//preData();
+
 
 function getArrayFromObjects(bigPre,smallPre){
     let result=[];
@@ -87,6 +187,10 @@ function getArrayFromObjects(bigPre,smallPre){
     4: If bestSolution is not fit  =>
     [100,20,10,5,1,0.25,0.10,0.05,0.01]
  */
+function addNewItemToBestSolution(bestSolution,item,count){
+    bestSolution.push(item.COUNT=count)
+    return bestSolution;
+}
 
 function isInCid(bestSolution,dic){
     const UnitToValue={
@@ -114,23 +218,37 @@ function isInCid(bestSolution,dic){
                  x.OK=true;
                  return x;
              }else{
-                 x.COUNT= x.COUNT-inWork.COUNT;
-                return x;
+                 if(inWork.COUNT>0){
+                     const temp = x.COUNT;
+                    let newItem = {...x};
+
+                    x.COUNT= inWork.COUNT;
+                    x.OK= true;
+                  
+                    newItem.COUNT=temp-inWork.COUNT;
+                    bestSolution.push(newItem);
+                    return x;
+                 }else{
+                    return x;
+                 }   
+                return x;           
              }
          });
+
          for(let i=0;i<bestSolution.length;i++){
              if(!bestSolution[i].OK){
                  isAllMeet=false;
                  break;
              }
          }
+
          if(isAllMeet){
              // workCid - bestSolution
            change =  workCid.map(w=>{
                 let inBest= bestSolution.filter(b=>b.TYPE== w.TYPE);
                 if(inBest.length>0){
-                    w.COUNT= w.COUNT-inBest.COUNT;
-                    w.SUM=Number((w.COUNT*UnitToValue[w.TYPE]).toFixed(2));
+                    w.COUNT= w.COUNT-inBest[0].COUNT;
+                    w.SUM= Number((w.COUNT*UnitToValue[w.TYPE]).toFixed(2));
                     return w;
                 }else{
                     return w;
@@ -138,54 +256,166 @@ function isInCid(bestSolution,dic){
             });
             let totalChange= change.reduce((acc,c)=>acc+c.SUM,0);
             if(totalChange>0){
-                result={"status":"OPEN",change:change};
+                result={"status":"OPEN",change:bestSolution};
             }else{
-                result={"status":"CLOSE",change:change};
+                result={"status":"CLOSED",change:bestSolution};
             }
          }else{
              // try find new solution
              /**
               * 
               */
+            result = tryFindNewSolution(workCid,bestSolution,UnitToValue);
          }
     
-    console.log(workCid);
+   // console.log("--2 final Solution--",result);
+    return result;
 }
+
 /**
  * // 1:from bestSolution  filter all items which need to find more lower level items
  * // 2: try to finish all items, if success then get final good result; else: no exact change
  */
 function tryFindNewSolution(workCid,bestSolution,UnitToValue){
+    let allOkItems = bestSolution.filter(x=> x.OK==true);
     let allFailItems = bestSolution.filter(x=>x.OK==false);
-    let result ;
-    for(let i=0;i<allFailItems.length;i++){
-        let beginIndex= getBeginIndex(workCid,allFailItems[i]);
-        if(beginIndex>-1){
+    let result={} ;
 
+    // after this, only deal with allFailItems  => at final update the final bestSolution;
+    let currentItem ={};
+    for(let i=0;i<allFailItems.length;i++){
+
+        currentItem=allFailItems[i];
+        currentItem["newItems"]={flag:false,currentSum:0,items:[]};
+        let beginIndex= getBeginIndex(workCid,allFailItems[i]);
+        
+        if(beginIndex>-1){
+            let isFind = findSolution(UnitToValue,bestSolution,workCid,beginIndex,currentItem);
+            if(!isFind){
+                result={"status":"INSUFFICIENT_FUNDS",change:[]};
+                break;
+            }
         }else{
             result={"status":"INSUFFICIENT_FUNDS",change:[]};
             break;
         }
     }
+    if(result.status == undefined){
+        let totalLeft = workCid.reduce((acc,x)=>acc+x.SUM,0);
+        result.change= dealNewSolution(allOkItems,allFailItems);
+        if(totalLeft>0){
+            result.status="OPEN";
+        }else{
+            result.status="CLOSED";       
+        }
+    }
+
+
     return result;
 }
-function findSolution(workCid,beginIndex,value){
-    let acc=0;
-    for(let i=beginIndex;i<workCid.length;i++){
+//currentItem["newItems"]={flag:false,currentSum:0,items:[]};
+function dealNewSolution(allOkItems,allFailItems){
+    let result = [...allOkItems];
+
+    for(let i=0;i<allFailItems.length;i++){
+       result.push(allFailItems[i]);
+    }
+   // console.log("final---",result);
+    return result;
+}
+
+
+function findSolution(UnitToValue,bestSolution,workCid,beginIndex,currentItem){
+    let isFind =false;
+
+    for(let i=beginIndex;i>=0;i--){
+        // check current layer is handle the demand;
+        let result = isHandle(UnitToValue,bestSolution,workCid[i],currentItem);
+
+        if(result.handle){
+            // 1: currentItem OK:newItem, newItem:{"TYPE":"PENNY","COUNT":1,"OK":true}
+            // workCid update 
+            if(currentItem.newItems.currentSum ==0){
+                // one time find meet the demand;
+                currentItem.OK="newItem";
+                //delete currentItem.newItems;
+                currentItem["newItem"]={"TYPE":result.type,"COUNT":result.provideNum,"OK":true};
+                workCid.some(x=>{
+                    if(x.TYPE==result.type){
+                        x.COUNT =x.COUNT- result.provideNum;
+                        x.SUM= x.SUM- result.provideSum;
+                    }
+                });
+            }else{
+                // multiple finds and meet the demand;
+                currentItem.newItems.flag=true;
+                currentItem.OK=true;
+                currentItem.newItems.items.push({"TYPE":result.type,"COUNT":result.provideNum,"OK":true});
+                currentItem.newItems.currentSum= currentItem.newItems.currentSum +result.provideSum;
+
+                workCid.some(x=>{
+                    if(x.TYPE==result.type){
+                        x.COUNT =x.COUNT- result.provideNum;
+                        x.SUM= x.SUM- result.provideSum;
+                    }
+                });
+
+            }
+            isFind=true;
+            break;
+        }else{
+            // need to continue to find in next lower lever,
+            if(result.provideNum>0){
+                currentItem.newItems.items.push({"TYPE":result.type,"COUNT":result.provideNum,"OK":true});
+                currentItem.newItems.currentSum= currentItem.newItems.currentSum +result.provideSum;
+               
+                workCid.some(x=>{
+                    if(x.TYPE==result.type){
+                        x.COUNT =x.COUNT- result.provideNum;
+                        x.SUM= x.SUM- result.provideSum;
+                    }
+                });
+            }
+        }
+    }
+
+    return isFind;
+}
+
+function isHandle(UnitToValue,bestSolution,item,currentItem){
+    let result ={handle:false,provideSum:0,provideNum:0};
+    let maxNum= getMaxNumFromItem(bestSolution,item);
+    let total = Number((maxNum * UnitToValue[item.TYPE]).toFixed(2));
+
+    let value = currentItem.COUNT * UnitToValue[currentItem.TYPE] - currentItem.newItems.currentSum;
+
+    if(total>=value){
+        result.handle=true;
+        result.provideSum= value;
+        result.provideNum= value/UnitToValue[item.TYPE];
+        result.type= item.TYPE;
+
+    }else{
+        result.provideSum= total;
+        result.provideNum= maxNum;
+        result.type=item.TYPE;
+
         
     }
+    return result;
 }
-function isHandle(item,value){
-    
-}
+
 
 function getMaxNumFromItem(bestSolution,itemInWorkCid){
     let result=itemInWorkCid.COUNT;
     let fixNum =0;
     let node =bestSolution.filter(b=>b.TYPE == itemInWorkCid.TYPE)[0];
-   if(node.OK){
-       fixNum= node.COUNT;
-   }
+    if(node !== undefined){
+        if(node.OK){
+            fixNum= node.COUNT;
+        }
+    }
+  
    result = result-fixNum;
    return result;
 
@@ -195,15 +425,13 @@ function getBeginIndex(workCid,item){
     let result= -1;
     for(let i=0;i<workCid.length;i++){
         if(workCid[i].TYPE== item.TYPE){
-            result=i+1;
+            result=i-1;
             break;
         }
     }
     return result;
 }
 
-
- isInCid();
 
 function diffNum(str){
     let result =[];
@@ -214,7 +442,6 @@ function diffNum(str){
     return result;
 }
 
-preData(12.23,2000);
 
 // 100,20,10,5,1; -- 25,10,5,1 
 //[ 1000, 900, 80, 7 ] [ 60, 6 ]
@@ -232,9 +459,12 @@ checkCashRegister(19.5, 20,
 */
 function diffPreBigData(data){
     let result={};
+    if(data==0){
+        return result;
+    }
     for(let i=0;i<data.length;i++){
         const d= data[i];
-        if(d>100){
+        if(d>=100){
             if(result["ONE HUNDRED"]!== undefined){
                 result["ONE HUNDRED"]=result["ONE HUNDRED"] +d/100;
             }else{
@@ -273,16 +503,15 @@ function diffPreBigData(data){
 */
 function diffPreSmallData(data){
     let result={};
-    for(let i=0;i<data.length;i++){
-        const d= data[i];
-        if(d>=10 && d<100){
-            let flag=String(d/25); 
+
+        if(data>=10 && data<100){
+            let flag=String(data/25); 
 
             if(flag.indexOf(".")>-1){
                 const [left,right]= flag.split(".");
                 if(Number(left)>=1){
                     result["QUARTER"]=Number(left);
-                    const leftNum = d%25
+                    const leftNum = data%25
                     if(leftNum>=10){
                         if(String(leftNum/10).indexOf(".")>-1){
                             const [left1,right1]=String(leftNum/10).split(".");
@@ -317,7 +546,7 @@ function diffPreSmallData(data){
 
 
                 }else{
-                    const leftNum = d%25
+                    const leftNum = data%25
                     if(leftNum>=10){
                         if(String(leftNum/10).indexOf(".")>-1){
                             const [left1,right1]=String(leftNum/10).split(".");
@@ -353,22 +582,26 @@ function diffPreSmallData(data){
 
               
             }else{
-                result["QUARTER"]=d/25;
+                result["QUARTER"]=data/25;
             }
-        }else if(d<10){
-            if(d<5){
-                result["PENNY"]=d;
+        }
+        else if(data<10){
+            if(data<5){
+                result["PENNY"]=data;
             }else{
-                if(d>5){
+                if(data>5){
                     result["NICKEL"]=1;
-                    result["PENNY"]=d-5;
+                    result["PENNY"]=data-5;
                 }else{
                     result["NICKEL"]=1;
                 }
             }
         }
        
-    }
+    
     //console.log(result);
     return result;
 }
+
+checkCashRegister(19.5, 20, 
+    [["PENNY", 0.5], ["NICKEL", 0], ["DIME", 0], ["QUARTER", 0], ["ONE", 0], ["FIVE", 0], ["TEN", 0], ["TWENTY", 0], ["ONE HUNDRED", 0]]) ;

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <style type='text/scss'>
+        @mixin border-radius($radius){
+          -webkit-border-radius:$radius;
+          -moz-border-radius:$radius;
+          -ms-border-radius:$radius;
+          border-radius:$radius;
+        }
+        
+        
+          #awesome {
+            width: 150px;
+            height: 150px;
+            background-color: green;
+          @include border-radius(15px);
+          }
+
+ @mixin border-stroke($val){
+  @if $val == light{
+    border: 1px solid black;
+  }
+  @else if $val== medium{
+    border:3px solid black;
+  }
+  @else if $val==heavy{
+    border: 6px solid black;
+  } 
+  @else{
+    border:none;
+  }
+
+  @for $i from 1 to 6{
+    .text-#{$i} {font-size:15* $i}
+}
+
+
+  #box {
+    width: 150px;
+    height: 150px;
+    background-color: red;
+    @include border-stroke(medium);
+  }
+
+  @each $color in blue, black, red{
+  .#{$color}-bg {background-color:$color;}
+}
+
+  div {
+    height: 200px;
+    width: 200px;
+  }
+
+  $x:1;
+@while $x <6{
+    .text-#{$x} {font-size: 15* $x;}
+    $x:$x +1;
+}
+.info{
+    width: 200px;
+    border: 1px solid black;
+    margin: 0 auto;
+  }
+  .info-important {
+    @extend .info;
+    background-color:magenta;
+  }
+
+
+        </style>
+        
+<div id="box"></div>
+<div id="awesome"></div>
+
+<p class="text-1">Hello</p>
+<p class="text-2">Hello</p>
+<p class="text-3">Hello</p>
+<p class="text-4">Hello</p>
+<p class="text-5">Hello</p>
+
+<div class="blue-bg"></div>
+<div class="black-bg"></div>
+<div class="red-bg"></div>
+
+
+<div class="info-important">
+  <p>This is an important post. It should extend the class ".info" and have its own CSS styles.</p>
+</div>
+
+<div class="info">
+  <p>This is a simple post. It has basic styling and can be extended for other uses.</p>
+</div>
+</body>
+</html>
